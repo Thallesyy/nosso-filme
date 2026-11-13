@@ -4,3 +4,4 @@ _previa*.png
 __pycache__/
 .DS_Store
 Thumbs.db
+.remember/
