@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0510">
+<title>a novela que eu não perdi</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%AC%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Yellowtail&display=swap" rel="stylesheet">
+<style>
+  :root { --rosa: #ff6fa3; --rosa-claro: #ffd1e0; --creme: #fff3e8; --ouro: #e2b56b; --fundo: #0a0510; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%; background: var(--fundo); overflow: hidden; color: var(--creme);
+    font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+    -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; overscroll-behavior: none; touch-action: none;
+    -webkit-user-select: none; user-select: none;
+  }
+  #c { position: fixed; inset: 0; width: 100%; height: 100vh; height: 100dvh; display: block; touch-action: none; }
+  .letra { font-family: "Bebas Neue", "Arial Narrow", Impact, sans-serif; letter-spacing: 0.22em; text-transform: uppercase; }
+
+  /* carregando */
+  #carregando { position: fixed; inset: 0; z-index: 40; background: var(--fundo); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; transition: opacity 0.6s ease; }
+  #carregando.some { opacity: 0; pointer-events: none; }
+  #carregando .roda { width: 36px; height: 36px; border: 2px solid rgba(255, 209, 224, 0.2); border-top-color: var(--rosa); border-radius: 50%; animation: gira 0.9s linear infinite; }
+  #carregando p { font-size: 14px; color: var(--rosa-claro); font-style: italic; padding: 0 24px; text-align: center; }
+  @keyframes gira { to { transform: rotate(360deg); } }
+
+  /* abertura: por cima da rua, que já aparece atrás */
+  #abertura {
+    position: fixed; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
+    padding: 0 26px; background: radial-gradient(ellipse at 50% 36%, rgba(10, 5, 16, 0.58) 0%, rgba(10, 5, 16, 0.9) 70%);
+    transition: opacity 1.1s ease;
+  }
+  #abertura.some { opacity: 0; pointer-events: none; }
+  #abertura .letra { font-size: 15px; color: var(--ouro); margin-bottom: 18px; }
+  #abertura h1 { font-size: clamp(36px, 10.5vw, 64px); font-weight: 700; font-style: italic; line-height: 1.08; color: var(--creme); text-shadow: 0 0 34px rgba(255, 111, 163, 0.55); max-width: 11em; }
+  #abertura .sub { font-size: clamp(14px, 3.8vw, 18px); font-style: italic; opacity: 0.8; margin: 18px 0 40px; }
+  .botao {
+    font-family: "Bebas Neue", "Arial Narrow", Impact, sans-serif; letter-spacing: 0.2em; font-size: 19px; text-transform: uppercase;
+    background: linear-gradient(180deg, var(--rosa) 0%, #d9457a 100%); color: #fff; border: none; padding: 15px 38px 13px; border-radius: 30px; cursor: pointer;
+    box-shadow: 0 8px 30px rgba(255, 111, 163, 0.4), 0 0 60px rgba(255, 111, 163, 0.2); transition: transform 0.15s ease;
+  }
+  .botao:active { transform: scale(0.96); }
+  #abertura .dica { font-size: 12px; opacity: 0.55; margin-top: 22px; font-style: italic; }
+
+  /* legenda de filme */
+  #legenda {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; pointer-events: none; text-align: center; opacity: 0;
+    padding: 0 22px calc(env(safe-area-inset-bottom, 0px) + max(1.5vh, 9px));
+    font-size: clamp(15px, 4.1vw, 21px); font-style: italic; line-height: 1.28; color: #fff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 0 12px rgba(0, 0, 0, 0.9), 0 0 2px #000;
+  }
+  #legenda.credito { font-family: "Bebas Neue", "Arial Narrow", Impact, sans-serif; font-style: normal; letter-spacing: 0.3em; text-transform: uppercase; font-size: clamp(15px, 4vw, 20px); color: var(--creme); }
+
+  /* botões que ficam por cima */
+  .fino {
+    font-family: "Bebas Neue", "Arial Narrow", Impact, sans-serif; letter-spacing: 0.16em; text-transform: uppercase; font-size: 14px;
+    background: rgba(20, 8, 18, 0.5); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    color: var(--rosa-claro); border: 1px solid rgba(255, 209, 224, 0.28); padding: 9px 15px 7px; border-radius: 18px; cursor: pointer;
+  }
+  .fino:active { background: rgba(255, 209, 224, 0.18); }
+  #btnSom { position: fixed; z-index: 12; top: calc(env(safe-area-inset-top, 0px) + 10px); right: 14px; width: 38px; height: 38px; padding: 0; font-size: 17px; letter-spacing: 0; display: none; }
+  #btnPular { position: fixed; z-index: 12; top: calc(env(safe-area-inset-top, 0px) + 12px); left: 14px; display: none; }
+  .aparece { display: block !important; }
+
+  #fim, #nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 12; text-align: center; opacity: 0; pointer-events: none; transition: opacity 0.8s ease; padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 22px); }
+  #fim.visivel, #nav.visivel { opacity: 1; pointer-events: auto; }
+  #fim .linha, #nav .linha { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  #fim .dica, #nav .dica { font-size: 12.5px; font-style: italic; opacity: 0.7; margin-bottom: 12px; text-shadow: 0 1px 4px #000; }
+  #nav .nome { font-size: clamp(19px, 5.2vw, 26px); font-style: italic; font-weight: 700; text-shadow: 0 1px 6px #000, 0 0 16px rgba(0,0,0,0.8); margin-bottom: 4px; }
+  .seta { position: fixed; top: 46%; z-index: 13; width: 46px; height: 46px; border-radius: 50%; padding: 0; font-size: 24px; letter-spacing: 0; line-height: 1; display: none; }
+  .seta.esq { left: 8px; } .seta.dir { right: 8px; }
+  #nav.visivel ~ .seta.nav, #modal.visivel .seta { display: block; }
+
+  /* o cartaz aberto */
+  #modal { position: fixed; inset: 0; z-index: 30; background: radial-gradient(ellipse at center, rgba(52, 18, 42, 0.95) 0%, rgba(12, 4, 10, 0.985) 75%); opacity: 0; pointer-events: none; transition: opacity 0.3s ease; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; }
+  #modal.visivel { opacity: 1; pointer-events: auto; }
+  #mCaixa { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 54px) 22px calc(env(safe-area-inset-bottom, 0px) + 28px); text-align: center; }
+  #mFoto { max-width: min(100%, 520px); max-height: 56vh; border-radius: 4px; border: 5px solid var(--ouro); box-shadow: 0 12px 50px rgba(0, 0, 0, 0.6); object-fit: contain; background: #1a0c16; }
+  #mSobre { font-size: 15px; color: var(--rosa); margin-top: 20px; }
+  #mTitulo { font-size: clamp(30px, 8.5vw, 46px); font-style: italic; font-weight: 700; line-height: 1.1; margin-top: 4px; }
+  #mData { font-size: 14px; opacity: 0.8; margin-top: 8px; }
+  #mSinopse { font-size: clamp(15px, 4vw, 18px); font-style: italic; line-height: 1.45; opacity: 0.92; margin-top: 14px; max-width: 26em; }
+  #mFechar { position: fixed; z-index: 32; top: calc(env(safe-area-inset-top, 0px) + 8px); right: 12px; width: 42px; height: 42px; padding: 0; font-size: 24px; letter-spacing: 0; border-radius: 50%; }
+  #modal .seta { z-index: 32; }
+
+  /* versão simples (sem 3D) */
+  #simples { position: fixed; inset: 0; z-index: 35; display: none; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y; background: radial-gradient(ellipse at 50% 0%, #34122a 0%, #0c040a 70%); padding: calc(env(safe-area-inset-top, 0px) + 46px) 20px calc(env(safe-area-inset-bottom, 0px) + 60px); text-align: center; }
+  #simples.visivel { display: block; }
+  #simples h1 { font-size: clamp(34px, 10vw, 58px); font-style: italic; line-height: 1.08; text-shadow: 0 0 30px rgba(255, 111, 163, 0.5); }
+  #simples .sub { font-style: italic; opacity: 0.8; margin: 14px 0 26px; }
+  #simples section { max-width: 560px; margin: 0 auto 54px; }
+  #simples .cap { font-size: 15px; color: var(--rosa); }
+  #simples h2 { font-size: clamp(28px, 8vw, 40px); font-style: italic; margin: 2px 0 4px; }
+  #simples .data { font-size: 13px; opacity: 0.75; margin-bottom: 14px; }
+  #simples figure { margin: 0 0 16px; }
+  #simples img, #simples video { width: 100%; max-height: 78vh; object-fit: contain; border-radius: 4px; border: 4px solid var(--ouro); background: #1a0c16; display: block; }
+  #simples figcaption { font-style: italic; font-size: 16px; margin-top: 8px; opacity: 0.92; }
+  #simples .fim p { font-style: italic; font-size: 19px; line-height: 1.5; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div id="carregando"><div class="roda"></div><p id="carregandoTexto">abrindo o cinema...</p></div>
+
+<div id="abertura" class="some">
+  <div class="letra" id="abCine"></div>
+  <h1 id="abTitulo"></h1>
+  <p class="sub" id="abSub"></p>
+  <button class="botao" id="btnComecar"></button>
+  <p class="dica">com som fica melhor ♪</p>
+</div>
+
+<div id="legenda"></div>
+<button class="fino" id="btnPular"></button>
+<button class="fino" id="btnSom">♪</button>
+
+<div id="fim">
+  <p class="dica" id="fimDica"></p>
+  <div class="linha"><button class="fino" id="btnDeNovo"></button><button class="fino" id="btnSaguao"></button></div>
+</div>
+
+<div id="nav">
+  <p class="nome" id="navNome"></p>
+  <p class="dica" id="navDica"></p>
+  <div class="linha"><button class="fino" id="btnSala"></button><button class="fino" id="btnDeNovo2"></button></div>
+</div>
+<button class="fino seta esq nav" id="navAnt">‹</button>
+<button class="fino seta dir nav" id="navProx">›</button>
+
+<div id="modal">
+  <button class="fino" id="mFechar">×</button>
+  <div id="mCaixa">
+    <img id="mFoto" alt="">
+    <div class="letra" id="mSobre"></div>
+    <h2 id="mTitulo"></h2>
+    <div class="letra" id="mData"></div>
+    <p id="mSinopse"></p>
+  </div>
+  <button class="fino seta esq" id="mAnt">‹</button>
+  <button class="fino seta dir" id="mProx">›</button>
+</div>
+
+<div id="simples">
+  <div class="letra" style="font-size:15px;color:var(--ouro);margin-bottom:14px" id="sCine"></div>
+  <h1 id="sTitulo"></h1>
+  <p class="sub" id="sSub"></p>
+  <div id="sLista"></div>
+</div>
+
+<audio id="musica" preload="none" playsinline></audio>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="textos.js"></script>
+<script src="fotos.js"></script>
+<script src="js/base.js"></script>
+<script src="js/fachada.js"></script>
+<script src="js/saguao.js"></script>
+<script src="js/sala.js"></script>
+<script src="js/projecao.js"></script>
+<script>
+(function () {
+  'use strict';
+  var P = new URLSearchParams(location.search);
+  var TESTE = P.get('teste') === '1';
+  function $(id) { return document.getElementById(id); }
+  var canvas = $('c'), elCarregando = $('carregando'), elAbertura = $('abertura'), elLegenda = $('legenda');
+  var elFim = $('fim'), elNav = $('nav'), elModal = $('modal'), btnSom = $('btnSom'), btnPular = $('btnPular');
+  var MID = window.MIDIA || { fotos: {}, videos: {} };
+
+  /* ---------- os textos da página ---------- */
+  $('abCine').textContent = 'cine ' + TEXTOS.cinema + ' apresenta';
+  $('abTitulo').textContent = TEXTOS.titulo;
+  $('abSub').textContent = TEXTOS.aberturaSub;
+  $('btnComecar').textContent = TEXTOS.botao;
+  btnPular.textContent = TEXTOS.pular;
+  $('btnDeNovo').textContent = TEXTOS.verDeNovo; $('btnDeNovo2').textContent = TEXTOS.verDeNovo;
+  $('btnSaguao').textContent = TEXTOS.irSaguao; $('btnSala').textContent = TEXTOS.voltarSala;
+  $('fimDica').textContent = TEXTOS.dicaSentado; $('navDica').textContent = TEXTOS.dicaSaguao;
+  document.title = TEXTOS.titulo;
+
+  /* =====================================================================
+     Música (um <audio> só, que troca de faixa) e os barulhinhos do projetor
+     ===================================================================== */
+  var audio = $('musica'), mudo = false, comecou = false, faixaAtual, oculto = false;
+  var ORDEM = [MUSICAS.creditos, MUSICAS.filme, MUSICAS.entrada];
+  function tocar() {
+    if (TESTE || mudo || oculto || !faixaAtual) return;
+    var p = audio.play(); if (p && p.catch) p.catch(function () {});
+  }
+  function faixa(id) {                    // id: nome da música, ou null pra silêncio
+    if (id === faixaAtual) return;
+    faixaAtual = id;
+    if (!id) { audio.pause(); return; }
+    audio.src = 'musicas/' + id + '.mp3';
+    tocar();
+  }
+  audio.addEventListener('ended', function () {
+    if (modo === 'livre' || modo === 'saguao' || simplesAtivo) { faixaAtual = undefined; faixa(ORDEM[(ORDEM.indexOf(audio.src.split('/').pop().replace('.mp3', '')) + 1) % ORDEM.length]); }
+  });
+
+  var ac = null, ganhoProjetor = null;
+  function somIniciar() {                  // dentro do toque
+    if (TESTE) return;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ac = new AC();
+      // o projetor: um chiado baixo com 24 estalinhos por segundo
+      var n = ac.sampleRate, buf = ac.createBuffer(1, n, n), d = buf.getChannelData(0), passo = Math.floor(n / 24), s = 12345;
+      for (var i = 0; i < n; i++) {
+        s = (s * 1103515245 + 12345) & 0x7fffffff;
+        var r = s / 0x7fffffff * 2 - 1, k = i % passo;
+        d[i] = r * 0.10 + (k < 70 ? r * (1 - k / 70) * 0.9 : 0);
+      }
+      var fonte = ac.createBufferSource(); fonte.buffer = buf; fonte.loop = true;
+      var filtro = ac.createBiquadFilter(); filtro.type = 'bandpass'; filtro.frequency.value = 1700; filtro.Q.value = 0.6;
+      ganhoProjetor = ac.createGain(); ganhoProjetor.gain.value = 0;
+      fonte.connect(filtro); filtro.connect(ganhoProjetor); ganhoProjetor.connect(ac.destination);
+      fonte.start();
+      if (ac.state === 'suspended') ac.resume();
+    } catch (e) { ac = null; }
+  }
+  function somProjetor(v) {
+    if (!ac || !ganhoProjetor) return;
+    try { ganhoProjetor.gain.setTargetAtTime(mudo || oculto ? 0 : v * 0.05, ac.currentTime, 0.25); } catch (e) {}
+  }
+  function somBipe() {
+    if (!ac || mudo) return;
+    try {
+      var o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.value = 1000; g.gain.value = 0.045; o.connect(g); g.connect(ac.destination);
+      o.start(); o.stop(ac.currentTime + 0.085);
+    } catch (e) {}
+  }
+
+  btnSom.addEventListener('click', function () {
+    mudo = !mudo; audio.muted = mudo;
+    btnSom.textContent = mudo ? '♪̸' : '♪';
+    if (!mudo && comecou && audio.paused) tocar();
+  });
+  document.addEventListener('visibilitychange', function () {
+    oculto = document.hidden;
+    if (!comecou) return;
+    if (oculto) { audio.pause(); if (proj) proj.pausar(); somProjetor(0); }
+    else { tocar(); if (proj) proj.retomar(); }
+  });
+  document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+
+  /* =====================================================================
+     Versão simples: se o 3D não abrir (ou cair duas vezes), o filme vira uma página
+     ===================================================================== */
+  var simplesAtivo = false;
+  function mostrarSimples() {
+    if (simplesAtivo) return;
+    simplesAtivo = true;
+    document.documentElement.style.touchAction = 'auto'; document.body.style.touchAction = 'auto';
+    $('sCine').textContent = 'cine ' + TEXTOS.cinema + ' apresenta';
+    $('sTitulo').textContent = TEXTOS.titulo; $('sSub').textContent = TEXTOS.aberturaSub;
+    var lista = $('sLista');
+    function secao(sobre, titulo, data, cenas) {
+      var s = document.createElement('section'), h = '';
+      if (sobre) h += '<div class="letra cap"></div>';
+      h += '<h2></h2>' + (data ? '<div class="letra data"></div>' : '');
+      s.innerHTML = h;
+      if (sobre) s.querySelector('.cap').textContent = sobre;
+      s.querySelector('h2').textContent = titulo;
+      if (data) s.querySelector('.data').textContent = data;
+      cenas.forEach(function (c) {
+        var f = document.createElement('figure'), m;
+        if (c.video && MID.videos[c.video]) {
+          m = document.createElement('video'); m.src = 'videos/' + c.video + '.mp4'; m.poster = 'videos/' + c.video + '.jpg';
+          m.controls = true; m.preload = 'none'; m.playsInline = true; m.setAttribute('playsinline', '');
+        } else if (c.foto && MID.fotos[c.foto]) {
+          m = document.createElement('img'); m.loading = 'lazy'; m.src = 'fotos/' + c.foto + '.jpg'; m.alt = '';
+        } else return;
+        f.appendChild(m);
+        if (c.legenda) { var fc = document.createElement('figcaption'); fc.textContent = c.legenda; f.appendChild(fc); }
+        s.appendChild(f);
+      });
+      lista.appendChild(s);
+    }
+    CAPITULOS.forEach(function (cap, i) {
+      if (i === CAPITULOS.length - 1) secao(null, TEXTOS.osDias, null, OS_DIAS);
+      secao(TEXTOS.capitulo + ' ' + (i + 1), cap.titulo, cap.data, cap.cenas);
+    });
+    var f = document.createElement('section'); f.className = 'fim';
+    [TEXTOS.proximoTitulo + ':'].concat(PROXIMOS, [TEXTOS.continua, '', TEXTOS.fraseStory, TEXTOS.fimLinha1, TEXTOS.fimLinha2]).forEach(function (t) {
+      var p = document.createElement('p'); p.textContent = t; f.appendChild(p);
+    });
+    lista.appendChild(f);
+    canvas.style.display = 'none';
+    elCarregando.classList.add('some'); elAbertura.classList.add('some');
+    elFim.classList.remove('visivel'); elNav.classList.remove('visivel'); elLegenda.style.opacity = 0; btnPular.classList.remove('aparece');
+    $('simples').classList.add('visivel');
+    btnSom.classList.add('aparece');
+    // a música começa no primeiro toque (o iPhone só deixa assim)
+    function primeiro() {
+      document.removeEventListener('pointerdown', primeiro);
+      comecou = true; faixaAtual = undefined; faixa(MUSICAS.filme);
+    }
+    if (comecou) { faixaAtual = undefined; faixa(MUSICAS.filme); } else document.addEventListener('pointerdown', primeiro);
+  }
+  if (P.get('simples') === '1') { mostrarSimples(); return; }
+
+  /* =====================================================================
+     O 3D
+     ===================================================================== */
+  var renderer, proj = null, modo = 'carregando';
+  try {
+    if (typeof THREE === 'undefined') throw new Error('sem three.js');
+    var aa = P.get('aa') ? P.get('aa') === '1' : (window.devicePixelRatio || 1) < 2;
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: aa, alpha: false, stencil: false, powerPreference: 'high-performance' });
+  } catch (e) { mostrarSimples(); return; }
+  renderer.autoClear = false;
+  renderer.setClearColor(0x050308, 1);
+  var pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+  renderer.setPixelRatio(pixelRatio);
+  F.aniso = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+
+  var cena = new THREE.Scene();
+  var cam = new THREE.PerspectiveCamera(60, 1, 0.08, 400);
+  cam.rotation.order = 'YXZ';
+
+  // a camada de cima: barras de cinema, vinheta, grão e o escurecer
+  var uCapa = { uBarra: { value: 0 }, uFade: { value: 1 }, uTempo: F.U.uTempo, uGrao: { value: 0.05 }, uVig: { value: 0.5 }, uRes: { value: new THREE.Vector2(1, 1) }, uEsc: { value: 1.5 } };
+  var cenaCapa = new THREE.Scene();
+  var capa = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+    uniforms: uCapa,
+    vertexShader: 'void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: [
+      'uniform float uBarra; uniform float uFade; uniform float uTempo; uniform float uGrao; uniform float uVig; uniform vec2 uRes; uniform float uEsc;',
+      'float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }',
+      'void main(){',
+      '  vec2 uv = gl_FragCoord.xy / uRes;',
+      '  float barra = clamp(step(uv.y, uBarra) + step(1.0 - uBarra, uv.y), 0.0, 1.0);',
+      '  vec2 q = (uv - 0.5) * vec2(1.0, 0.92);',
+      '  float vig = smoothstep(0.34, 0.92, length(q)) * uVig;',
+      '  float preto = max(1.0 - (1.0 - vig) * (1.0 - uFade), barra);',
+      '  float n = h(floor(gl_FragCoord.xy / uEsc) + fract(uTempo * 3.7) * 200.0);',
+      '  float g = abs(n - 0.5) * 2.0 * uGrao * (1.0 - barra) * (1.0 - uFade);',
+      '  gl_FragColor = vec4(vec3(step(0.5, n) * g), 1.0 - (1.0 - preto) * (1.0 - g));',
+      '}'
+    ].join('\n'),
+    blending: THREE.CustomBlending, blendSrc: THREE.OneFactor, blendDst: THREE.OneMinusSrcAlphaFactor,
+    depthTest: false, depthWrite: false, transparent: true
+  }));
+  capa.frustumCulled = false;
+  cenaCapa.add(capa);
+  var camCapa = new THREE.Camera();
+
+  var fach, sag, sala;
+  var S = F.SALA, ASSENTO = S.assento;
+
+  /* ---------- o roteiro da câmera (T = segundos desde o "entrar") ---------- */
+  var T_FILME = 55;                     // quando a contagem regressiva começa
+  var T_SENTADA = 49.6, T_FIM = 0;
+  var CAM = [
+    { t: 0, p: [3.0, 10.4, 27] }, { t: 5.5, p: [1.0, 5.0, 17.5] }, { t: 9.5, p: [0, 1.75, 9.0] },
+    { t: 12.5, p: [0, 1.7, 2.2] }, { t: 14.0, p: [0, 1.65, -0.9] }
+  ];
+  var OLHAR = [
+    { a: 0, b: 3.2, v: [0, 10.9, 0.2] }, { a: 6.2, b: 7.6, v: [0, 4.6, 2.4] },
+    { a: 9.6, b: 12.6, v: [0, 2.0, 0] }, { a: 13.4, b: 13.9, v: [0, 1.75, -9] }
+  ];
+  var VEZ_CARTAZ = [];                  // o instante em que a câmera para em cada cartaz
+  for (var ci = 0; ci < 8; ci++) {
+    var tv = 15.2 + ci * 2.7, pc = F.posCartaz(ci);
+    VEZ_CARTAZ.push(tv);
+    CAM.push({ t: tv, p: [-pc.lado * 0.6, 1.62, pc.z + 0.95] });
+    OLHAR.push({ a: tv - 0.85, b: tv + 0.85, v: [pc.x, F.SAGUAO.cartazY, pc.z] });
+  }
+  CAM.push({ t: 36.6, p: [0, 1.62, -14.7] }, { t: 39.2, p: [0, 1.62, -16.7] }, { t: 41.6, p: [0, 1.62, -18.1] },
+    { t: 45.6, p: [0, S.chao(-21.5) + 1.6, -21.5] }, { t: 47.2, p: [0.3, S.chao(-21.95) + 1.5, -21.95] },
+    { t: T_SENTADA, p: [ASSENTO.x, ASSENTO.y, ASSENTO.z] });
+  var OLHAR_TELA = { a: T_SENTADA - 0.2, b: 1e9, v: [0, 2.75, S.telaZ] };
+  OLHAR.push({ a: 36.0, b: 39.4, v: [0, 2.0, -24] }, { a: 40.8, b: 43.8, v: [0, 2.9, -33] }, { a: 45.2, b: 46.4, v: [0.9, 0.9, -28] }, OLHAR_TELA);
+
+  function posCam(t, o) {
+    var n = CAM.length;
+    if (t <= CAM[0].t) { o.set(CAM[0].p[0], CAM[0].p[1], CAM[0].p[2]); return; }
+    if (t >= CAM[n - 1].t) { o.set(CAM[n - 1].p[0], CAM[n - 1].p[1], CAM[n - 1].p[2]); return; }
+    var i = 0; while (CAM[i + 1].t < t) i++;
+    var k0 = CAM[i], k1 = CAM[i + 1], km = CAM[i - 1], kp = CAM[i + 2];
+    var h = k1.t - k0.t, u = (t - k0.t) / h, u2 = u * u, u3 = u2 * u;
+    var h00 = 2 * u3 - 3 * u2 + 1, h10 = u3 - 2 * u2 + u, h01 = -2 * u3 + 3 * u2, h11 = u3 - u2, r = [0, 0, 0];
+    for (var c = 0; c < 3; c++) {
+      var m0 = km ? (k1.p[c] - km.p[c]) / (k1.t - km.t) : 0;
+      var m1 = kp ? (kp.p[c] - k0.p[c]) / (kp.t - k0.t) : 0;
+      r[c] = h00 * k0.p[c] + h10 * h * m0 + h01 * k1.p[c] + h11 * h * m1;
+    }
+    o.set(r[0], r[1], r[2]);
+  }
+  var va = new THREE.Vector3(), vb = new THREE.Vector3();
+  function dirCam(t, pos, o) {
+    var i = 0; while (i + 1 < OLHAR.length && OLHAR[i + 1].a <= t) i++;
+    var A = OLHAR[i], B = OLHAR[i + 1];
+    va.set(A.v[0], A.v[1], A.v[2]).sub(pos).normalize();
+    if (!B || t <= A.b) { o.copy(va); return; }
+    vb.set(B.v[0], B.v[1], B.v[2]).sub(pos).normalize();
+    entreDirecoes(va, vb, F.suave2((t - A.b) / (B.a - A.b)), o);
+  }
+  // vira a cabeça de uma direção pra outra passando sempre pela frente (gira o lado e a altura separados)
+  function entreDirecoes(a, b, e, o) {
+    var ya = Math.atan2(-a.x, -a.z), yb = Math.atan2(-b.x, -b.z);
+    var pa = Math.asin(F.clamp(a.y, -1, 1)), pb = Math.asin(F.clamp(b.y, -1, 1));
+    var y = F.lerp(ya, yb, e), pt = F.lerp(pa, pb, e), c = Math.cos(pt);
+    o.set(-Math.sin(y) * c, Math.sin(pt), -Math.cos(y) * c);
+  }
+
+  /* ---------- tamanho da tela ---------- */
+  var W = 1, H = 1, fovPasseio = 66, fovAmplo = 58, fovPerto = 44, barraMax = 0.07;
+  function medir() {
+    W = canvas.clientWidth || window.innerWidth; H = canvas.clientHeight || window.innerHeight;
+    renderer.setSize(W, H, false);
+    var asp = W / H;
+    cam.aspect = asp;
+    fovPasseio = asp < 1 ? 66 : 52;
+    barraMax = asp < 1 ? 0.07 : 0.085;
+    var d = Math.sqrt(Math.pow(ASSENTO.x, 2) + Math.pow(ASSENTO.z - S.telaZ, 2));
+    function porLargura(fr) { return 2 * Math.atan((S.telaW / 2) / (d * fr * asp)) * 180 / Math.PI; }
+    function porAltura(fr) { return 2 * Math.atan((S.telaH / 2) / (d * fr)) * 180 / Math.PI; }
+    fovPerto = Math.max(porLargura(0.92), porAltura(0.80));
+    fovAmplo = Math.min(72, Math.max(porLargura(0.66), porAltura(0.60)));
+    cam.updateProjectionMatrix();
+    renderer.getDrawingBufferSize(uCapa.uRes.value);
+    uCapa.uEsc.value = Math.max(1, pixelRatio * 1.4);
+  }
+
+  /* ---------- o olhar com o dedo ---------- */
+  var yawU = 0, pitchU = 0, velYaw = 0, velPitch = 0, arrastando = false, px0 = 0, py0 = 0, pxI = 0, pyI = 0, tI = 0, moveu = 0;
+  canvas.addEventListener('pointerdown', function (e) {
+    arrastando = true; px0 = pxI = e.clientX; py0 = pyI = e.clientY; tI = performance.now(); moveu = 0; velYaw = velPitch = 0;
+    try { canvas.setPointerCapture(e.pointerId); } catch (er) {}
+  });
+  canvas.addEventListener('pointermove', function (e) {
+    if (!arrastando) return;
+    var dx = e.clientX - px0, dy = e.clientY - py0; px0 = e.clientX; py0 = e.clientY;
+    moveu += Math.abs(dx) + Math.abs(dy);
+    if (modo === 'saguao') return;
+    var k = cam.fov / 60 * 0.0042;
+    yawU += dx * k; pitchU += dy * k;
+    // o embalo depois de soltar tem limite, senão um gesto rápido joga a câmera longe
+    velYaw = F.clamp(dx * k, -0.03, 0.03); velPitch = F.clamp(dy * k, -0.02, 0.02);
+  });
+  function soltou(e) {
+    if (!arrastando) return;
+    arrastando = false;
+    var dx = e.clientX - pxI, rapido = performance.now() - tI < 600;
+    if (modo === 'saguao') {
+      if (Math.abs(dx) > 45 && rapido) irCartaz(cartazK + (dx < 0 ? 1 : -1));
+      else if (moveu < 12) toqueSaguao(e.clientX, e.clientY);
+    }
+  }
+  canvas.addEventListener('pointerup', soltou);
+  canvas.addEventListener('pointercancel', function () { arrastando = false; });
+
+  /* ---------- escurecer e cortar de um lugar pro outro ---------- */
+  var fade = 1, fadeAlvo = 0, depoisDoCorte = null;
+  function corte(fn) {
+    if (TESTE) { fn(); return; }
+    depoisDoCorte = fn; fadeAlvo = 1;
+  }
+
+  /* ---------- o saguão, depois do filme: um cartaz de cada vez ---------- */
+  var cartazK = 0, sagDe = { p: new THREE.Vector3(), d: new THREE.Vector3() }, sagPara = { p: new THREE.Vector3(), d: new THREE.Vector3() }, sagU = 1;
+  function poseCartaz(k, o) {
+    var pc = F.posCartaz(k);
+    var dist = 0.78;
+    o.p.set(-pc.lado * dist, 1.66, pc.z + 0.42);
+    o.d.set(pc.x, F.SAGUAO.cartazY + 0.02, pc.z).sub(o.p).normalize();
+  }
+  function irCartaz(k, jaVai) {
+    k = (k + 8) % 8;
+    cartazK = k;
+    sagDe.p.copy(cam.position); cam.getWorldDirection(sagDe.d);
+    poseCartaz(k, sagPara);
+    sagU = jaVai ? 1 : 0;
+    $('navNome').textContent = CAPITULOS[k].curta + ' · ' + CAPITULOS[k].titulo;
+  }
+  var raio = new THREE.Raycaster(), ponto = new THREE.Vector2();
+  function toqueSaguao(x, y) {
+    ponto.set(x / W * 2 - 1, -(y / H) * 2 + 1);
+    raio.setFromCamera(ponto, cam);
+    var hit = raio.intersectObjects(sag.cartazes, false)[0];
+    if (!hit) return;
+    var k = hit.object.userData.indice;
+    if (k === cartazK) abrirModal(k); else irCartaz(k);
+  }
+
+  var modalK = -1;
+  function abrirModal(k) {
+    k = (k + 8) % 8; modalK = k;
+    var cap = CAPITULOS[k];
+    $('mFoto').src = MID.fotos[cap.foto] ? 'fotos/' + cap.foto + '.jpg' : '';
+    $('mSobre').textContent = TEXTOS.capitulo + ' ' + (k + 1);
+    $('mTitulo').textContent = cap.titulo; $('mData').textContent = cap.data; $('mSinopse').textContent = cap.sinopse || '';
+    elModal.classList.add('visivel'); elModal.scrollTop = 0;
+    if (modo === 'saguao' && k !== cartazK) irCartaz(k, true);
+  }
+  function fecharModal() { elModal.classList.remove('visivel'); modalK = -1; }
+  $('mFechar').addEventListener('click', fecharModal);
+  $('mAnt').addEventListener('click', function () { abrirModal(modalK - 1); });
+  $('mProx').addEventListener('click', function () { abrirModal(modalK + 1); });
+  $('navAnt').addEventListener('click', function () { irCartaz(cartazK - 1); });
+  $('navProx').addEventListener('click', function () { irCartaz(cartazK + 1); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') fecharModal();
+    var d = e.key === 'ArrowRight' ? 1 : (e.key === 'ArrowLeft' ? -1 : 0);
+    if (!d) return;
+    if (modalK >= 0) abrirModal(modalK + d); else if (modo === 'saguao') irCartaz(cartazK + d);
+  });
+
+  /* ---------- os modos ---------- */
+  var T = 0, relogio = 0, barra = 0, luzLivre = 0, reprise = false;
+  function entrarLivre() {
+    modo = 'livre';
+    elFim.classList.add('visivel'); elNav.classList.remove('visivel'); btnPular.classList.remove('aparece');
+  }
+  function verDeNovo() {
+    corte(function () {
+      modo = 'passeio'; T = T_FILME - 1.0; yawU = pitchU = 0; luzLivre = 0; reprise = true;
+      proj.reiniciar();
+      elFim.classList.remove('visivel'); elNav.classList.remove('visivel'); fecharModal();
+    });
+  }
+  $('btnDeNovo').addEventListener('click', verDeNovo);
+  $('btnDeNovo2').addEventListener('click', verDeNovo);
+  $('btnSaguao').addEventListener('click', function () {
+    corte(function () {
+      modo = 'saguao'; yawU = pitchU = 0;
+      irCartaz(0, true); cam.position.copy(sagPara.p);
+      elFim.classList.remove('visivel'); elNav.classList.add('visivel');
+    });
+  });
+  $('btnSala').addEventListener('click', function () {
+    corte(function () { yawU = pitchU = 0; entrarLivre(); });
+  });
+  btnPular.addEventListener('click', function () {
+    if (modo !== 'passeio' || T >= T_SENTADA - 1) return;
+    btnPular.classList.remove('aparece');
+    corte(function () { T = T_SENTADA + 0.2; yawU = pitchU = 0; });
+  });
+
+  /* ---------- legenda ---------- */
+  var legTexto = '', legForca = -1, legClasse = '';
+  function legenda(texto, forca, classe) {
+    if (texto !== legTexto) { elLegenda.textContent = texto; legTexto = texto; }
+    if (classe !== legClasse) { elLegenda.className = classe; legClasse = classe; }
+    forca = Math.round(forca * 50) / 50;
+    if (forca !== legForca) { elLegenda.style.opacity = forca; legForca = forca; }
+  }
+
+  /* ---------- um quadro ---------- */
+  var pos = new THREE.Vector3(), dir = new THREE.Vector3(), NEVOA = new THREE.Color();
+  function quadro(dt) {
+    relogio += dt; F.U.uTempo.value = relogio;
+    if (modo === 'passeio') { T += dt; if (T >= T_FIM) { T = T_FIM; entrarLivre(); } }
+
+    // o corte: escurece, troca, clareia
+    if (fade !== fadeAlvo) {
+      fade = fadeAlvo > fade ? Math.min(fadeAlvo, fade + dt / 0.32) : Math.max(fadeAlvo, fade - dt / 0.45);
+      if (fade >= 1 && depoisDoCorte) { var fn = depoisDoCorte; depoisDoCorte = null; fn(); fadeAlvo = 0; }
+    }
+
+    var antes = modo === 'abertura' || modo === 'carregando';
+    var Tc = antes ? 0 : T, tf = Tc - T_FILME, noSaguao = modo === 'saguao', livre = modo === 'livre';
+    luzLivre += ((livre ? 1 : 0) - luzLivre) * Math.min(1, dt * 1.5);
+
+    // portas, luzes, cortina, projetor
+    fach.portas(noSaguao ? 0 : F.entra(Tc, 9.0, 12.0));
+    sag.portas(noSaguao ? 0 : F.entra(Tc, 34.8, 37.8));
+    proj.lampada(F.entra(Tc, T_FILME - 0.7, T_FILME - 0.05));
+    var ep = proj.atualizar(antes ? -1 : tf);
+    if (ep.bipe && modo === 'passeio') somBipe();
+    var feixe = F.entra(Tc, T_FILME - 1.4, T_FILME + 0.2);
+    var luzCasa = 1 - 0.965 * F.entra(Tc, T_FILME - 3.8, T_FILME - 0.9);
+    luzCasa = F.lerp(luzCasa, 0.42, luzLivre);
+    sala.atualizar({ luz: luzCasa, luzTela: ep.luz, feixe: feixe * (1 - 0.35 * luzLivre), cortina: F.suave2(F.rampa(Tc, T_FILME - 5.2, T_FILME - 1.2)) });
+    somProjetor(noSaguao || !comecou ? 0 : feixe * (tf < proj.dur.contagem ? 1 : 0.16));
+
+    // a câmera
+    var fov = fovPasseio, zoom = 0, tCred = proj.dur.contagem + proj.dur.corpo;
+    if (noSaguao) {
+      if (sagU < 1) sagU = Math.min(1, sagU + dt / 0.95);
+      var e = F.suave2(sagU);
+      pos.copy(sagDe.p).lerp(sagPara.p, e);
+      entreDirecoes(sagDe.d, sagPara.d, e, dir);
+      yawU *= 0.9; pitchU *= 0.9;
+    } else {
+      zoom = F.suave2(F.rampa(tf, 1, 46)) * (1 - 0.5 * F.suave(F.rampa(tf, tCred, tCred + 9)));
+      zoom *= 1 - luzLivre;
+      OLHAR_TELA.v[1] = F.lerp(2.75, S.telaY - 0.26, zoom);
+      posCam(Tc, pos);
+      dirCam(Tc, pos, dir);
+      fov = F.lerp(fovPasseio, F.lerp(fovAmplo, fovPerto, zoom), F.entra(Tc, 46.5, 50.5));
+      if (antes) { pos.x += Math.sin(relogio * 0.21) * 0.5; pos.y += Math.sin(relogio * 0.13) * 0.25; }
+      if (Tc >= T_SENTADA) { pos.y += Math.sin(relogio * 0.9) * 0.004; pos.x += Math.sin(relogio * 0.37) * 0.003; }
+      // o olhar com o dedo: durante o passeio e o filme ele volta sozinho pro lugar; depois do filme fica livre
+      if (!arrastando) {
+        yawU += velYaw; pitchU += velPitch; velYaw *= 0.9; velPitch *= 0.9;
+        if (!livre) { var volta = Math.min(1, dt * 1.6); yawU -= yawU * volta; pitchU -= pitchU * volta; }
+      }
+      var ly = livre ? 2.7 : 0.5, lp = livre ? 0.75 : 0.3;
+      yawU = F.clamp(yawU, -ly, ly); pitchU = F.clamp(pitchU, -lp, lp);
+    }
+    cam.position.copy(pos);
+    cam.rotation.set(F.clamp(Math.asin(F.clamp(dir.y, -1, 1)) + pitchU, -1.45, 1.45), Math.atan2(-dir.x, -dir.z) + yawU, 0);
+    if (Math.abs(cam.fov - fov) > 0.01) { cam.fov = fov; cam.updateProjectionMatrix(); }
+
+    // o que aparece e a névoa de cada lugar
+    var z = pos.z;
+    fach.grupo.visible = z > -8;
+    sag.grupo.visible = z > -19.5 && z < 14;
+    sala.grupo.visible = !noSaguao && z < -9;
+    var kS = F.suave(F.rampa(-z, -1.5, 1.5)), kT = F.suave(F.rampa(-z, 15.2, 17.4));
+    NEVOA.setRGB(F.lerp(0.047, 0.11, kS), F.lerp(0.027, 0.065, kS), F.lerp(0.078, 0.075, kS));
+    F.U.uNevoa.value.setRGB(F.lerp(NEVOA.r, 0.02, kT), F.lerp(NEVOA.g, 0.01, kT), F.lerp(NEVOA.b, 0.02, kT));
+    F.U.uNevoaD.value = F.lerp(F.lerp(0.012, 0.004, kS), 0.007, kT);
+
+    // barras de cinema e legenda
+    var barraAlvo = antes ? 0 : ((livre || noSaguao) ? 0 : barraMax * F.entra(Tc, 0.1, 1.6));
+    barra += (barraAlvo - barra) * Math.min(1, dt * 3);
+    if (TESTE) barra = barraAlvo;
+    uCapa.uBarra.value = barra; uCapa.uFade.value = fade;
+    uCapa.uGrao.value = noSaguao ? 0.03 : 0.05;
+
+    if (modo === 'passeio') {
+      var txt = '', f = 0, cl = '';
+      if (Tc < 9) {
+        var f1 = F.janela(Tc, 1.6, 2.4, 4.4, 5.1), f2 = F.janela(Tc, 5.6, 6.4, 8.3, 9.0);
+        if (f1 > 0) { txt = TEXTOS.apresenta; f = f1; } else if (f2 > 0) { txt = TEXTOS.estrelando; f = f2; }
+        cl = 'credito';
+      } else if (Tc < 36) {
+        for (var k = 0; k < 8; k++) {
+          var fk = F.janela(Tc, VEZ_CARTAZ[k] - 1.05, VEZ_CARTAZ[k] - 0.6, VEZ_CARTAZ[k] + 0.75, VEZ_CARTAZ[k] + 1.15);
+          if (fk > 0) { txt = CAPITULOS[k].curta + ' · ' + CAPITULOS[k].titulo; f = fk; cl = 'credito'; break; }
+        }
+      } else if (ep.forcaLegenda > 0) { txt = ep.legenda; f = ep.forcaLegenda; }
+      legenda(txt, f, cl);
+      if (Tc > T_SENTADA - 1.5 && btnPular.classList.contains('aparece')) btnPular.classList.remove('aparece');
+    } else legenda('', 0, '');
+
+    // a música de cada parte
+    if (modo === 'passeio' && comecou) {
+      if (Tc < T_FILME - 0.4) faixa(reprise ? null : MUSICAS.entrada);
+      else if (tf < proj.dur.contagem - 0.15) faixa(null);
+      else if (tf < tCred) faixa(MUSICAS.filme);
+      else faixa(MUSICAS.creditos);
+    }
+
+    renderer.clear();
+    renderer.render(cena, cam);
+    renderer.render(cenaCapa, camCapa);
+  }
+
+  /* ---------- se ficar pesado, baixa a resolução sozinho ---------- */
+  var amostra = [];
+  function medirDesempenho(dt) {
+    if (modo === 'carregando') return;
+    amostra.push(dt);
+    if (amostra.length < 90) return;
+    var soma = 0; for (var i = 0; i < amostra.length; i++) soma += amostra[i];
+    var media = soma / amostra.length; amostra = [];
+    if (media > 0.027 && pixelRatio > 1) { pixelRatio = Math.max(1, pixelRatio * 0.75); renderer.setPixelRatio(pixelRatio); medir(); }
+    // o 3D já está rodando firme faz um tempo: uma queda mais tarde volta a ter direito a recarregar uma vez
+    if (relogio > 25 && !firme) { firme = true; try { sessionStorage.removeItem('filme-recarregou'); } catch (e) {} }
+  }
+  var firme = false;
+
+  /* ---------- começar ---------- */
+  $('btnComecar').addEventListener('click', function () {
+    if (comecou) return;
+    comecou = true;
+    audio.muted = mudo;
+    faixa(MUSICAS.entrada);                // dentro do toque: o iPhone só deixa assim
+    somIniciar();
+    try { proj.destravar(); } catch (e) {}
+    proj.aquecer();
+    elAbertura.classList.add('some');
+    btnSom.classList.add('aparece'); btnPular.classList.add('aparece');
+    T = 0; modo = 'passeio';
+  });
+
+  window.addEventListener('resize', medir);
+  window.addEventListener('orientationchange', function () { setTimeout(medir, 250); });
+
+  /* ---------- se a placa de vídeo derrubar o 3D: recarrega uma vez; se cair de novo, versão simples ---------- */
+  canvas.addEventListener('webglcontextlost', function (e) {
+    e.preventDefault();
+    var ja = false;
+    try { ja = sessionStorage.getItem('filme-recarregou') === '1'; sessionStorage.setItem('filme-recarregou', '1'); } catch (er) {}
+    if (!ja) { location.reload(); return; }
+    modo = 'simples';
+    try { if (proj) proj.pausar(); } catch (er) {}
+    mostrarSimples();
+  }, false);
+
+  /* ---------- monta tudo ---------- */
+  function cartazDe(img, op) { return F.texturaCanvas(F.desenharCartaz(img, op), { solta: true }); }
+  function imagem(nome) {
+    if (!MID.fotos[nome]) return Promise.resolve(null);
+    return F.carregarImagem('fotos/' + nome + '.jpg').then(function (im) { return im; }, function () { return null; });
+  }
+  function montar() {
+    fach = F.fachada({});
+    sag = F.saguao({});
+    sala = F.sala({});
+    cena.add(fach.grupo); cena.add(sag.grupo); cena.add(sala.grupo);
+    proj = F.projecao({ renderer: renderer, tela: sala.tela, duracaoMusica: 159.5, semVideo: P.get('semvideo') === '1' });
+    T_FIM = T_FILME + proj.dur.total + 2.5;
+    medir();
+    var rodape = TEXTOS.umFilmeDe + ' · ' + TEXTOS.estrelando, topo = 'cine ' + TEXTOS.cinema + ' apresenta';
+    var esperas = CAPITULOS.slice(0, 8).map(function (cap, i) {
+      return imagem(cap.foto).then(function (im) {
+        sag.cartaz(i, cartazDe(im, { topo: topo, sobre: TEXTOS.capitulo + ' ' + (i + 1), titulo: cap.titulo, data: cap.data, rodape: rodape }));
+      });
+    });
+    esperas.push(imagem(TEXTOS.fotoCartaz).then(function (im) {
+      fach.cartaz(0, cartazDe(im, { topo: topo, faixa: TEXTOS.emCartaz, titulo: TEXTOS.titulo, data: TEXTOS.hoje, rodape: rodape }));
+    }));
+    esperas.push(imagem(TEXTOS.fotoEmBreve).then(function (im) {
+      fach.cartaz(1, cartazDe(im, { topo: topo, faixa: TEXTOS.emBreve, titulo: TEXTOS.emBreveTitulo, data: TEXTOS.emBreveData, rodape: rodape }));
+    }));
+    return Promise.all(esperas);
+  }
+
+  var fontes = ['118px "Bebas Neue"', '700 60px "Playfair Display"', 'italic 700 60px "Playfair Display"', 'italic 400 60px "Playfair Display"', '268px Yellowtail'];
+  var esperaFontes = (document.fonts && document.fonts.load)
+    ? Promise.all(fontes.map(function (f) { return document.fonts.load(f).catch(function () {}); }))
+    : Promise.resolve();
+  Promise.race([esperaFontes, new Promise(function (ok) { setTimeout(ok, 3500); })]).then(montar).then(function () {
+    if (simplesAtivo) return;
+    fade = 1; fadeAlvo = 0;
+    if (TESTE) {
+      elCarregando.style.display = 'none'; elAbertura.style.display = 'none';
+      comecou = true; modo = 'passeio'; fade = 0;
+      T = parseFloat(P.get('t') || '0') || 0;
+      if (P.get('tf')) T = T_FILME + parseFloat(P.get('tf'));
+      btnSom.classList.add('aparece');
+      window.__filme = {
+        quadro: function (dt) { quadro(dt === undefined ? 1 / 60 : dt); },
+        t: function (v) { modo = 'passeio'; elFim.classList.remove('visivel'); elNav.classList.remove('visivel'); T = v; quadro(0); },
+        tf: function (v) { this.t(T_FILME + v); },
+        livre: function () { T = T_FIM; entrarLivre(); luzLivre = 1; quadro(0); },
+        saguao: function (k) { modo = 'saguao'; irCartaz(k || 0, true); elFim.classList.remove('visivel'); elNav.classList.add('visivel'); quadro(0); },
+        olhar: function (y, p) { yawU = y; pitchU = p; velYaw = velPitch = 0; arrastando = true; quadro(0); arrastando = false; },
+        abrir: abrirModal, fechar: fecharModal, proj: proj,
+        info: function () {
+          return { modo: modo, T: T, T_FILME: T_FILME, T_FIM: T_FIM, dur: proj.dur, plano: proj.estado.indice, fov: cam.fov, pos: cam.position.toArray(),
+            chamadas: renderer.info.render.calls, triangulos: renderer.info.render.triangles, texturas: renderer.info.memory.textures, pixelRatio: pixelRatio };
+        }
+      };
+      if (P.get('modo') === 'livre') window.__filme.livre();
+      else if (P.get('modo') === 'saguao') window.__filme.saguao(parseInt(P.get('k') || '0', 10));
+      else quadro(0);
+      document.documentElement.setAttribute('data-pronto', '1');
+      return;
+    }
+    modo = 'abertura';
+    elCarregando.classList.add('some'); elAbertura.classList.remove('some');
+    var ultimo = performance.now();
+    (function laco(agora) {
+      if (simplesAtivo) return;
+      requestAnimationFrame(laco);
+      var dt = Math.min(0.05, (agora - ultimo) / 1000);
+      ultimo = agora;
+      quadro(dt);
+      medirDesempenho(dt);
+    })(ultimo);
+  }).catch(function () { mostrarSimples(); });
+})();
+</script>
+</body>
+</html>

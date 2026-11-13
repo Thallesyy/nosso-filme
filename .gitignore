@@ -1,0 +1,6 @@
+_*.html
+_check*.js
+_previa*.png
+__pycache__/
+.DS_Store
+Thumbs.db
